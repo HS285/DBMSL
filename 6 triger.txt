@@ -1,0 +1,12 @@
+create or replace trigger test
+after delete  or update on lib1
+REFERENCING old as o new as n
+for each row
+begin
+insert into lib_audit values(:o.rollno, :o.name,  :o.bookname);
+end;
+
+
+
+show errors trigger libtrig;
+/
