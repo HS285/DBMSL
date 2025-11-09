@@ -1,0 +1,61 @@
+
+DROP TABLE result;
+DROP TABLE stud_marks;
+
+CREATE TABLE stud_marks (
+  rollno       NUMBER(10) PRIMARY KEY,
+  name         VARCHAR2(15),
+  total_marks  NUMBER(4)     
+);
+
+CREATE TABLE result (
+  roll   NUMBER(10) PRIMARY KEY,
+  name   VARCHAR2(15),
+  class  VARCHAR2(20)
+);
+
+INSERT INTO stud_marks VALUES (13, 'a', 990);
+INSERT INTO stud_marks VALUES (14, 'b', 900);
+INSERT INTO stud_marks VALUES ( 4, 'c', 999);
+COMMIT;
+
+CREATE OR REPLACE PROCEDURE proc_grade (p_roll IN NUMBER) AS
+  v_marks  stud_marks.total_marks%TYPE;
+  v_name   stud_marks.name%TYPE;
+  v_class  result.class%TYPE;
+BEGIN
+  
+  SELECT name, total_marks
+  INTO   v_name, v_marks
+  FROM   stud_marks
+  WHERE  rollno = p_roll;
+
+  IF v_marks BETWEEN 990 AND 1500 THEN
+    v_class := 'Distinction';
+  ELSIF v_marks BETWEEN 900 AND 989 THEN
+    v_class := 'First Class';
+  ELSIF v_marks BETWEEN 825 AND 899 THEN
+    v_class := 'Higher Second Class';
+  ELSE
+    v_class := 'Pass';
+  END IF;
+
+  UPDATE result
+     SET name  = v_name,
+         class = v_class
+   WHERE roll  = p_roll;
+
+  IF SQL%ROWCOUNT = 0 THEN
+    INSERT INTO result (roll, name, class)
+    VALUES (p_roll, v_name, v_class);
+  END IF;
+END;
+/
+
+BEGIN 
+FOR r IN (SELECT rollno FROM stud_marks) 
+LOOP proc_grade(r.rollno); 
+END LOOP; 
+END;
+/
+SELECT * FROM result ORDER BY roll;
